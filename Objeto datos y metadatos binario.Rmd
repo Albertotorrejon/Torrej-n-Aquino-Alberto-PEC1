@@ -1,0 +1,73 @@
+---
+title: "Objeto datos y metadatos binario"
+output: html_document
+---
+
+```{r}
+# En este caso, vamos a utilizar para realizar nuestros análisis SummarizedExperiment, Esto, lo podemos realizar debido a que hemos instalado previamente bioconductor.
+
+#SummarizedExperiment es una extensión de expresionSet (de hecho, he estado leyendo que es más moderna y se empieza a utilizar más)
+
+library(SummarizedExperiment)
+```
+
+```{r}
+#El siguiente paso que tenemos que llevar a cabo es la lectura de nuestros datos. En esta caso, he elegido el dataset cachexia, el cual viene en csv. Definimos una variable en la cual contengamos la lectura de nuestro CSV. Vamos a llamarla dataframe o conjunto de datos
+
+dataframe <- read.csv("human_cachexia.csv")
+
+# Mostramos nuestro conjunto de datos primero para echarle un vistazo antes de empezar a trabajar con ellos
+
+dataframe
+
+```
+
+```{r}
+#Lo siguiente que llevamos a cabo es un estudio de los datos. En este caso, tenemos que separar por un lado el conjunto de "datos" y por otro lado, la descripción de estos datos, lo que serían los "metadatos". Como hemos podido observar al mostrar el dataframe, la información de los metadatos las tenemos en las dos primeras columnas
+
+metadatos <- dataframe[, 1:2] #Le decimos que extraiga las dos primeras columnas
+metabolitos <- dataframe[, -(1:2)] #Extrae todas las columnas excepto la primera y segunda
+
+#Comprobamos
+metadatos
+
+metabolitos
+
+```
+
+```{r}
+#Para poder trabajar con estos datos, tenemos que convertir el dataframe en una matriz
+
+matriz <- as.matrix(metabolitos)
+
+#Por otro lado, tenemos que tener en cuenta que posteriormente cuando construyamos el objeto, Se tienen que identificar los datos con el paciente, por lo tanto le asignamos el nombre a la columna.
+
+row.names(matriz) <- metadatos$Patient.ID
+
+# Comprobamos que se correspondan los pacientes en nuestra matriz
+
+matriz
+```
+
+```{r}
+#Por último, vamos a contruir un objeto de la clase SummarizedExperiment.
+
+se <- SummarizedExperiment(   
+  assays = list(metabolomics = t(matriz)), # En este caso hacemos la matriz transpuesta. Se transpone para que coincidan las dimensiones
+  colData = DataFrame(metadatos) #Dataframe con información de cada paciente
+)
+
+#Comprobamos que todo haya salido bien
+se
+```
+
+
+```{r}
+#Guardamos el documento
+
+save(se, file = "human_cachexia_SE.Rda")
+
+save(se, file = "human_cachexia_SE.csv")
+
+```
+

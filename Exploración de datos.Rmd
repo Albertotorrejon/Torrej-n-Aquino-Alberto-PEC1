@@ -1,0 +1,102 @@
+---
+title: "Exploración de datos"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+#Para la exploración de datos, utilizamos un resumen estadístico (summary) pero en este caso utilizamos assay que se suele utilizar para manejar matrices de datos experimentales de muestras biológicas. Utilizamos el objeto generado  con los datos y metadatos
+
+summary(assay(se))
+
+```
+
+```{r}
+
+#Contamos si tenemos valores nulos en nuestro assay
+
+sum(is.na(assay(se)))
+
+#Podemos observar que no tenemos valores nulos
+```
+
+
+```{r}
+
+# Accedemos a los metadatos del experimentos con "ColData) y, por otro lado, mostramos las variables que hay en este metadato 
+
+colnames(colData(se))
+
+# Esto nos vuelca las dos variables, que en este caso son "Patient.ID" y "Muscle.loss"
+```
+
+
+```{r}
+#Vamos a empezar con el análisis de los datos. Para ello, tenemos que dividir el objeto creado en distintas variables
+
+mat <- assay(se) 
+meta <- colData(se)
+
+# Se puede decir que "desempaquetamos" el objeto para trabajar con el. Una vez con estos datos disponibles, vamos a ver un resumen general de la matriz
+
+summary(as.vector(matriz))
+
+#Con esto, ya podemos hacer análisis estadísticos. Vamos a hacer un boxplot para ver la distribución de los datos
+
+boxplot(mat,
+        outline = FALSE, # Observamos el gráfico con cajas
+        main = "Distribución de intensidades por metabolito",
+        ylab = "Intensidad")
+
+# Podemos observar que hay algunos valores que están empujando la media hacia arriba
+
+```
+
+
+```{r}
+#Posteriormente, hacemos un PCA porque tenemos muchos metabolitos por muestra y con ello podemos reducir las dimensiones para visualizar si existe una separación natural entre los grupos con y sin pérdida muscular, y así explorar patrones globales en los datos.
+
+#Descargamos en este caso las librerías necesarias
+
+library(FactoMineR)
+library(factoextra)
+
+pca <- PCA(t(matriz), graph = FALSE)
+fviz_pca_ind(pca, 
+             title = "PCA de las muestras") 
+
+# Introducimos dentro de una variable PCA aplicado a nuestra matriz de ensayo
+
+
+```
+
+
+```{r}
+#Por último, también es importante realizar un heatmap. En este caso, cogemos de bioconductor EnrichedHeatmap y seguimos las indicaciones para instalarlo.
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("EnrichedHeatmap")
+```
+
+```{r}
+#Cargamos la librería para poder realizar el heatmap
+
+library(pheatmap)
+
+# Seleccionamos solo los metabolitos (a partir de la columna 3, que es donde tenemos los datos, evitando así los metadatos)
+datos_metabolitos <- dataframe[, 3:ncol(dataframe)]
+
+# Calculamos posteriormente la matriz de correlación
+matriz_cor <- cor(datos_metabolitos)
+
+# Por último, calculamos el heatmap
+pheatmap(matriz_cor,
+         color = colorRampPalette(c("blue", "white", "red"))(100),
+         main = "Mapa de calor de correlación entre metabolitos")
+
+```
+
+
